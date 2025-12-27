@@ -257,8 +257,8 @@ function sendWhatsAppMessage() {
     const fullMessage = `Assalamu Alaikum, ${name} here (${role}). ${message} Jazakumullahu Khairan.`;
     
     // Phone numbers for President and Imam (these would be actual numbers in production)
-    const presidentNumber = '233XXXXXXXXX'; // Replace with actual number
-    const imamNumber = '233XXXXXXXXX'; // Replace with actual number
+    const presidentNumber = '233598160732'; // Replace with actual number
+    const imamNumber = '233598160732'; // Replace with actual number
     
     // Encode the message for URL
     const encodedMessage = encodeURIComponent(fullMessage);
