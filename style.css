@@ -146,14 +146,23 @@ h1, h2, h3, h4 {
     height: 100vh;
     min-height: 700px;
     position: relative;
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                url('hero-home.jpg') center/cover no-repeat;
+    /* Slightly lighter, soft green overlay */
+    background: linear-gradient(rgba(0, 80, 0, 0.5), rgba(0, 80, 0, 0.5)),
+                url('about-image.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: var(--white);
     margin-top: 80px;
+    /* Optional: smooth fade-in effect for hero */
+    animation: fadeIn 1.5s ease-out;
+}
+
+/* Optional fadeIn animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px);}
+    to { opacity: 1; transform: translateY(0);}
 }
 
 .hero-overlay {
@@ -185,10 +194,25 @@ h1, h2, h3, h4 {
 }
 
 .hero-title {
-    font-size: 4rem;
+    font-size: 4rem; /* large and prominent */
     margin-bottom: 1.5rem;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    font-family: 'Amiri', serif;
+    font-weight: 900; /* extra bold */
+    color: #ffffff; /* pure white */
+    text-shadow: 
+        0 2px 5px rgba(0,0,0,0.4),   /* subtle shadow for depth */
+        0 4px 10px rgba(0,0,0,0.3);  /* soft glow effect */
+    font-family: 'Amiri', serif; /* elegant serif font */
+    letter-spacing: 2px; /* slightly spaced letters for luxury feel */
+    line-height: 1.2;
+    transition: all 0.3s ease;
+}
+
+/* Optional hover effect for hero titles */
+.hero-title:hover {
+    transform: scale(1.05);
+    text-shadow: 
+        0 4px 10px rgba(0,0,0,0.5),
+        0 8px 20px rgba(0,0,0,0.4);
 }
 
 .quran-verse {
