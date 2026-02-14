@@ -9,113 +9,74 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCurrentYear();
 });
 
-// Navigation System
+// ==================== Navigation System ====================
 function initNavigation() {
     const tabs = document.querySelectorAll('.nav-tab');
     const slider = document.querySelector('.nav-slider');
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
-    // Remove active class from all tabs
-    tabs.forEach(tab => tab.classList.remove('active'));
-    
+
+    if (!tabs.length || !slider) return;
+
+    function setActiveTab(tab) {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        moveSlider(tab);
+    }
+
     // Set active tab based on current page
+    let activeTabFound = false;
     tabs.forEach(tab => {
         const tabPage = tab.getAttribute('href');
         if (tabPage === currentPage || (currentPage === '' && tabPage === 'index.html')) {
-            tab.classList.add('active');
-            moveSlider(tab);
+            setActiveTab(tab);
+            activeTabFound = true;
         }
     });
-    
-    // Add click event listeners
+    if (!activeTabFound) setActiveTab(tabs[0]);
+
     tabs.forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            if (!this.classList.contains('active')) {
-                tabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                moveSlider(this);
-                
-                // Add slight delay before navigation for smoother transition
-                e.preventDefault();
-                setTimeout(() => {
-                    window.location.href = this.getAttribute('href');
-                }, 300);
-            }
+        tab.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (this.classList.contains('active')) return;
+            setActiveTab(this);
+            setTimeout(() => {
+                window.location.href = this.getAttribute('href');
+            }, 250);
         });
     });
-    
-    // Initialize slider position
+
+    window.addEventListener('resize', () => {
+        const activeTab = document.querySelector('.nav-tab.active');
+        if (activeTab) moveSlider(activeTab);
+    });
+
     const activeTab = document.querySelector('.nav-tab.active');
-    if (activeTab && slider) {
-        moveSlider(activeTab);
-    }
+    if (activeTab) moveSlider(activeTab);
 }
 
 function moveSlider(tab) {
     const slider = document.querySelector('.nav-slider');
-    if (!slider) return;
-    
+    if (!slider || !tab) return;
     const tabRect = tab.getBoundingClientRect();
-    const tabsContainer = tab.parentElement.getBoundingClientRect();
-    
+    const containerRect = tab.parentElement.getBoundingClientRect();
     slider.style.width = `${tabRect.width}px`;
-    slider.style.left = `${tabRect.left - tabsContainer.left}px`;
+    slider.style.transform = `translateX(${tabRect.left - containerRect.left}px)`;
+    slider.style.transition = 'all 0.25s ease';
 }
 
-// Daily Quotes System
+// ==================== Daily Quotes System ====================
 const islamicQuotes = [
-    {
-        text: "The best among you are those who have the best manners and character.",
-        ref: "Prophet Muhammad (ﷺ)",
-        category: "character"
-    },
-    {
-        text: "Whoever believes in Allah and the Last Day, let him speak good or remain silent.",
-        ref: "Sahih al-Bukhari",
-        category: "speech"
-    },
-    {
-        text: "Verily, with hardship comes ease.",
-        ref: "Qur'an 94:5",
-        category: "patience"
-    },
-    {
-        text: "Do not lose hope, nor be sad.",
-        ref: "Qur'an 3:139",
-        category: "hope"
-    },
-    {
-        text: "The strong believer is better and more beloved to Allah than the weak believer.",
-        ref: "Sahih Muslim",
-        category: "strength"
-    },
-    {
-        text: "Allah does not burden a soul beyond that it can bear.",
-        ref: "Qur'an 2:286",
-        category: "patience"
-    },
-    {
-        text: "Kindness is a mark of faith, and whoever is not kind has no faith.",
-        ref: "Sahih Muslim",
-        category: "kindness"
-    },
-    {
-        text: "The most perfect believer in faith is the one who is best in character.",
-        ref: "Sunan al-Tirmidhi",
-        category: "character"
-    },
-    {
-        text: "And whoever relies upon Allah – then He is sufficient for him.",
-        ref: "Qur'an 65:3",
-        category: "trust"
-    },
-    {
-        text: "Spread the salaam, feed the hungry, and pray at night when people are sleeping.",
-        ref: "Sunan Ibn Majah",
-        category: "good deeds"
-    }
+    { text: "The best among you are those who have the best manners and character.", ref: "Prophet Muhammad (ﷺ)" },
+    { text: "Whoever believes in Allah and the Last Day, let him speak good or remain silent.", ref: "Sahih al-Bukhari" },
+    { text: "Verily, with hardship comes ease.", ref: "Qur'an 94:5" },
+    { text: "Do not lose hope, nor be sad.", ref: "Qur'an 3:139" },
+    { text: "The strong believer is better and more beloved to Allah than the weak believer.", ref: "Sahih Muslim" },
+    { text: "Allah does not burden a soul beyond that it can bear.", ref: "Qur'an 2:286" },
+    { text: "Kindness is a mark of faith, and whoever is not kind has no faith.", ref: "Sahih Muslim" },
+    { text: "The most perfect believer in faith is the one who is best in character.", ref: "Sunan al-Tirmidhi" },
+    { text: "And whoever relies upon Allah – then He is sufficient for him.", ref: "Qur'an 65:3" },
+    { text: "Spread the salaam, feed the hungry, and pray at night when people are sleeping.", ref: "Sunan Ibn Majah" }
 ];
-
 let currentQuoteIndex = 0;
 
 function initDailyQuotes() {
@@ -123,21 +84,12 @@ function initDailyQuotes() {
     const quoteRef = document.getElementById('quote-ref');
     const prevBtn = document.getElementById('prev-quote');
     const nextBtn = document.getElementById('next-quote');
-    
-    // Set initial quote
-    currentQuoteIndex = getRandomIndex();
+    if (!quoteText || !quoteRef) return;
+    currentQuoteIndex = Math.floor(Math.random() * islamicQuotes.length);
     updateQuoteDisplay();
-    
-    // Set up button event listeners
-    prevBtn.addEventListener('click', showPreviousQuote);
-    nextBtn.addEventListener('click', showNextQuote);
-    
-    // Auto-rotate quotes every 30 seconds
+    prevBtn?.addEventListener('click', showPreviousQuote);
+    nextBtn?.addEventListener('click', showNextQuote);
     setInterval(showNextQuote, 30000);
-}
-
-function getRandomIndex() {
-    return Math.floor(Math.random() * islamicQuotes.length);
 }
 
 function showPreviousQuote() {
@@ -154,335 +106,209 @@ function updateQuoteDisplay() {
     const quote = islamicQuotes[currentQuoteIndex];
     const quoteText = document.getElementById('daily-quote');
     const quoteRef = document.getElementById('quote-ref');
-    
-    // Add fade out animation
+    if (!quoteText || !quoteRef) return;
+
     quoteText.style.opacity = '0';
     quoteRef.style.opacity = '0';
-    
+
     setTimeout(() => {
         quoteText.textContent = `"${quote.text}"`;
         quoteRef.textContent = `— ${quote.ref}`;
-        
-        // Add fade in animation
         quoteText.style.opacity = '1';
         quoteRef.style.opacity = '1';
     }, 300);
 }
 
-// Contact Form System
+// ==================== Contact Form System ====================
 function initContactForm() {
     const form = document.getElementById('whatsapp-form');
     const roleOptions = document.querySelectorAll('.role-option');
-    const roleInput = document.getElementById('role');
     const messageInput = document.getElementById('message');
     const charCounter = document.getElementById('char-counter');
-    const previewText = document.getElementById('preview-text');
     const copyBtn = document.getElementById('copy-message');
-    
-    // Set active role
+    if (!form) return;
+
     setActiveRole('Student');
-    
-    // Role selection
+
     roleOptions.forEach(option => {
         option.addEventListener('click', function() {
-            const role = this.getAttribute('data-role');
-            setActiveRole(role);
+            setActiveRole(this.getAttribute('data-role'));
             updatePreview();
         });
     });
-    
-    // Character counter
-    messageInput.addEventListener('input', function() {
+
+    messageInput?.addEventListener('input', function() {
         const length = this.value.length;
-        charCounter.textContent = length;
-        
-        if (length > 500) {
-            this.value = this.value.substring(0, 500);
-            charCounter.textContent = '500';
-        }
-        
+        charCounter.textContent = length > 500 ? '500' : length;
+        if (length > 500) this.value = this.value.substring(0, 500);
         updatePreview();
     });
-    
-    // Form submission
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         sendWhatsAppMessage();
     });
-    
-    // Copy message button
-    copyBtn.addEventListener('click', copyMessageToClipboard);
-    
-    // Update preview on name change
-    document.getElementById('name').addEventListener('input', updatePreview);
-    
-    // Initial preview update
+
+    copyBtn?.addEventListener('click', copyMessageToClipboard);
+    document.getElementById('name')?.addEventListener('input', updatePreview);
     updatePreview();
 }
 
 function setActiveRole(role) {
     const roleOptions = document.querySelectorAll('.role-option');
     const roleInput = document.getElementById('role');
-    
-    roleOptions.forEach(option => {
-        if (option.getAttribute('data-role') === role) {
-            option.classList.add('active');
-        } else {
-            option.classList.remove('active');
-        }
-    });
-    
-    roleInput.value = role;
+    roleOptions.forEach(option => option.classList.toggle('active', option.getAttribute('data-role') === role));
+    if (roleInput) roleInput.value = role;
 }
 
 function updatePreview() {
-    const name = document.getElementById('name').value || '[Name]';
-    const role = document.getElementById('role').value || '[Role]';
-    const message = document.getElementById('message').value || '[Message]';
-    
+    const name = document.getElementById('name')?.value || '[Name]';
+    const role = document.getElementById('role')?.value || '[Role]';
+    const message = document.getElementById('message')?.value || '[Message]';
     const preview = `Assalamu Alaikum, ${name} here (${role}). ${message} Jazakumullahu Khairan.`;
     document.getElementById('preview-text').textContent = preview;
 }
 
+// ==================== WhatsApp Redirect Function ====================
 function sendWhatsAppMessage() {
-    const name = document.getElementById('name').value;
-    const role = document.getElementById('role').value;
-    const message = document.getElementById('message').value;
-    
-    if (!name || !message) {
-        showNotification('Please fill in all required fields', 'error');
-        return;
-    }
-    
+    const name = document.getElementById('name')?.value;
+    const role = document.getElementById('role')?.value;
+    const message = document.getElementById('message')?.value;
+
+    if (!name || !message) return showNotification('Please fill in all required fields', 'error');
+
     const fullMessage = `Assalamu Alaikum, ${name} here (${role}). ${message} Jazakumullahu Khairan.`;
-    
-    // Phone numbers for President and Imam (these would be actual numbers in production)
-    const presidentNumber = '233598160732'; // Replace with actual number
-    const imamNumber = '233598160732'; // Replace with actual number
-    
-    // Encode the message for URL
     const encodedMessage = encodeURIComponent(fullMessage);
-    
-    // Create WhatsApp URLs
-    const presidentUrl = `https://wa.me/${presidentNumber}?text=${encodedMessage}`;
-    const imamUrl = `https://wa.me/${imamNumber}?text=${encodedMessage}`;
-    
-    // Open both in new tabs
-    window.open(presidentUrl, '_blank');
-    setTimeout(() => {
-        window.open(imamUrl, '_blank');
-    }, 500);
-    
-    showNotification('Message opened in WhatsApp! Please send to both contacts.', 'success');
+
+    const presidentNumber = '233548787551'; // without '+'
+    // Automatic redirect to WhatsApp Web/App
+    window.location.href = `https://wa.me/${presidentNumber}?text=${encodedMessage}`;
 }
 
+// ==================== Copy to Clipboard ====================
 function copyMessageToClipboard() {
-    const previewText = document.getElementById('preview-text').textContent;
-    
-    navigator.clipboard.writeText(previewText)
-        .then(() => {
-            showNotification('Message copied to clipboard!', 'success');
-        })
-        .catch(err => {
-            showNotification('Failed to copy message', 'error');
-            console.error('Copy failed:', err);
-        });
+    const text = document.getElementById('preview-text')?.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+        .then(() => showNotification('Message copied to clipboard!', 'success'))
+        .catch(() => showNotification('Failed to copy message', 'error'));
 }
 
+// ==================== Notifications ====================
 function showNotification(message, type) {
-    // Remove existing notifications
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    // Create notification element
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
-    
-    // Add styles
+    notification.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i><span>${message}</span>`;
     notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
-        color: ${type === 'success' ? '#155724' : '#721c24'};
-        padding: 1rem 1.5rem;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 10000;
+        position: fixed; top: 100px; right: 20px; 
+        background: ${type==='success'?'#d4edda':'#f8d7da'};
+        color: ${type==='success'?'#155724':'#721c24'};
+        padding: 1rem 1.5rem; border-radius: var(--border-radius);
+        box-shadow: var(--shadow); display:flex; align-items:center; gap:0.75rem; z-index:10000;
+        border-left:4px solid ${type==='success'?'#28a745':'#dc3545'};
         animation: slideIn 0.3s ease;
-        border-left: 4px solid ${type === 'success' ? '#28a745' : '#dc3545'};
     `;
-    
-    // Add animation
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        @keyframes slideIn {from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+        @keyframes slideOut {from{transform:translateX(0);opacity:1;}to{transform:translateX(100%);opacity:0;}}
     `;
     document.head.appendChild(style);
-    
     document.body.appendChild(notification);
-    
-    // Remove after 5 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
     }, 5000);
 }
 
-// Scroll Animations
+// ==================== Scroll Animations ====================
 function initScrollAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-    };
-    
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, observerOptions);
-    
-    // Observe all elements with animation class
-    document.querySelectorAll('.animate-on-scroll').forEach(el => {
-        observer.observe(el);
-    });
-    
-    // Add scroll effect to navigation
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold:0.1, rootMargin:'0px 0px -100px 0px' });
+
+    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
     let lastScroll = 0;
     const nav = document.querySelector('.main-nav');
-    
     window.addEventListener('scroll', () => {
+        if (!nav) return;
         const currentScroll = window.pageYOffset;
-        
-        if (currentScroll > 100) {
-            nav.style.background = 'rgba(255, 255, 255, 0.98)';
-            nav.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
-        } else {
-            nav.style.background = 'rgba(255, 255, 255, 0.95)';
-            nav.style.boxShadow = 'var(--shadow)';
-        }
-        
-        // Hide/show on scroll
-        if (currentScroll > lastScroll && currentScroll > 200) {
-            nav.style.transform = 'translateY(-100%)';
-        } else {
-            nav.style.transform = 'translateY(0)';
-        }
-        
+        nav.style.background = currentScroll>100?'rgba(255,255,255,0.98)':'rgba(255,255,255,0.95)';
+        nav.style.boxShadow = currentScroll>100?'0 5px 20px rgba(0,0,0,0.1)':'var(--shadow)';
+        nav.style.transform = (currentScroll>lastScroll && currentScroll>200)?'translateY(-100%)':'translateY(0)';
         lastScroll = currentScroll;
     });
 }
 
-// Mobile Menu
+// ==================== Mobile Menu ====================
 function initMobileMenu() {
     const menuBtn = document.querySelector('.mobile-menu-btn');
     const mobileNav = document.querySelector('.mobile-nav');
     const mobileLinks = document.querySelectorAll('.mobile-nav-link');
-    
     if (!menuBtn || !mobileNav) return;
-    
+
     menuBtn.addEventListener('click', () => {
-        const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
-        menuBtn.setAttribute('aria-expanded', !isExpanded);
-        mobileNav.style.display = isExpanded ? 'none' : 'block';
-        menuBtn.innerHTML = isExpanded ? 
-            '<i class="fas fa-bars"></i>' : 
-            '<i class="fas fa-times"></i>';
+        const expanded = menuBtn.getAttribute('aria-expanded')==='true';
+        menuBtn.setAttribute('aria-expanded', !expanded);
+        mobileNav.style.display = expanded?'none':'block';
+        menuBtn.innerHTML = expanded?'<i class="fas fa-bars"></i>':'<i class="fas fa-times"></i>';
     });
-    
-    mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            mobileNav.style.display = 'none';
-            menuBtn.setAttribute('aria-expanded', 'false');
-            menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        });
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
+
+    mobileLinks.forEach(link => link.addEventListener('click', () => {
+        mobileNav.style.display='none';
+        menuBtn.setAttribute('aria-expanded','false');
+        menuBtn.innerHTML='<i class="fas fa-bars"></i>';
+    }));
+
+    document.addEventListener('click', e => {
         if (!mobileNav.contains(e.target) && !menuBtn.contains(e.target)) {
-            mobileNav.style.display = 'none';
-            menuBtn.setAttribute('aria-expanded', 'false');
-            menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            mobileNav.style.display='none';
+            menuBtn.setAttribute('aria-expanded','false');
+            menuBtn.innerHTML='<i class="fas fa-bars"></i>';
         }
     });
 }
 
-// Utility Functions
+// ==================== Utilities ====================
 function updateCurrentYear() {
-    const yearElement = document.getElementById('current-year');
-    if (yearElement) {
-        yearElement.textContent = new Date().getFullYear();
-    }
+    const yearEl = document.getElementById('current-year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 }
 
-// Add smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
+document.querySelectorAll('a[href^="#"]').forEach(anchor=>{
+    anchor.addEventListener('click', function(e){
         e.preventDefault();
-        
-        const targetId = this.getAttribute('href');
-        if (targetId === '#') return;
-        
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-            const navHeight = document.querySelector('.main-nav').offsetHeight;
-            const targetPosition = targetElement.offsetTop - navHeight;
-            
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
-        }
+        const target=document.querySelector(this.getAttribute('href'));
+        if(!target) return;
+        const navHeight=document.querySelector('.main-nav')?.offsetHeight||0;
+        window.scrollTo({top:target.offsetTop-navHeight,behavior:'smooth'});
     });
 });
 
-// Image lazy loading
-if ('IntersectionObserver' in window) {
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
+// ==================== Image Lazy Loading ====================
+if('IntersectionObserver' in window){
+    const imgObserver=new IntersectionObserver((entries,obs)=>{
+        entries.forEach(entry=>{
+            if(entry.isIntersecting){
+                const img=entry.target;
+                img.src=img.dataset.src;
                 img.classList.add('loaded');
-                observer.unobserve(img);
+                obs.unobserve(img);
             }
         });
     });
-    
-    document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
-    });
+    document.querySelectorAll('img[data-src]').forEach(img=>imgObserver.observe(img));
 }
 
-// Add loading animation to images
-document.addEventListener('DOMContentLoaded', () => {
-    const images = document.querySelectorAll('img:not([src=""])');
-    images.forEach(img => {
-        if (!img.complete) {
+document.addEventListener('DOMContentLoaded',()=>{
+    document.querySelectorAll('img:not([src=""])').forEach(img=>{
+        if(!img.complete){
             img.classList.add('loading');
-            img.addEventListener('load', () => {
-                img.classList.remove('loading');
-                img.classList.add('loaded');
-            });
-            img.addEventListener('error', () => {
-                img.classList.remove('loading');
-                img.alt = 'Image failed to load';
-            });
+            img.addEventListener('load',()=>{img.classList.remove('loading'); img.classList.add('loaded');});
+            img.addEventListener('error',()=>{img.classList.remove('loading'); img.alt='Image failed to load';});
         }
     });
 });
